@@ -1,11 +1,16 @@
 from tkinter import Button, Text,Tk, ttk,filedialog,messagebox,Label,Scrollbar
 from tkinter import *
+from Token import Token
+from Error import Error
 
 #variables globales
+Errores=[]
+Tokens=[]
 ventana=Tk()
 textE=Text()
 textS=Text()
 texto=""
+analizado=False
 def generarVentana():
     global ventana,textE,textS
     ventana.configure(background="#008080")
@@ -68,14 +73,158 @@ def cargarArchivo():
         texto=""
         print("No selecciono ningun archivo, por favor vuelva a intentarlo")
     else:
-        texto=archivo.read()
-        print(texto)
+        temp=archivo.read()
         textE.delete('1.0', END)
-        textE.insert(END,texto)
+        textE.insert(END,temp)
         archivo.close()
 
 def Solicitaranalisis():
-    pass
+    global texto,analizado,textE
+    texto=textE.get("1.0", "end-1c")
+    if texto=="":
+        print("texto vacio")
+        messagebox.showerror(message="No hay archivo por analizar, Por favor primero cargue un archivo",title="Error")
+        analizado=False
+    else:
+        print(texto)
+        analizar(texto)
+        analizado=True
+
+
+#metodos para el analizador lexico-------------------------------------
+def isLetra(C):
+    if((ord(C) >= 65 and ord(C) <= 90) or (ord(C) >= 97 and ord(C) <= 122) or ord(C) == 164 or ord(C) == 165):
+        return True
+    else:
+        return False
+
+def isNumero(C):
+    if ((ord(C) >= 48 and ord(C) <= 57)):
+        return True
+    else:
+        return False
+
+def isEspacio(C):
+    if (ord(C)==32 or ord(C)==9 or ord(C)==10):
+        return True
+    else:
+        return False
+
+def analizar(txt):
+    global Tokens,Errores
+    Errores=[]
+    Tokens=[]
+    fila=1
+    columna=1
+    estado=0
+    error=False
+    LexemaActual=""
+
+    conteo=0
+    for c in txt:
+        if estado==0 and not isEspacio(c):
+            if isLetra(c):
+                LexemaActual+=c
+                estado=1
+            #seccion de simbolos---------------------------------------
+            elif ord(c)==61:#signo =
+                Tokens.append(Token("igual",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==40:
+                Tokens.append(Token("parentesis_a",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==35:
+                estado=5
+            elif isNumero(c):
+                estado=8
+            elif ord(c)==39:#3 comillas simples
+                if conteo==2:
+                    conteo=0
+                    estado=6
+                else:
+                    conteo+=1
+            elif ord(c)==43 or ord(c)==45:#signo mas e igual
+                Tokens.append(Token("signo",c,fila,columna))
+                estado=7
+            #-------------------------------------------------------
+            elif ord(c)==34:#comillas
+                LexemaActual=""
+                estado=2
+            else:
+                Errores.append(Error(fila,columna,c,"Caracter no valido"))
+                error=True
+                LexemaActual=""
+                estado=0
+        elif estado==1:
+            if isLetra(c):
+                LexemaActual+=c
+                estado=1
+            elif ord(c)==61:#signo =
+                Tokens.append(Token("Reservada",LexemaActual,fila,columna-len(LexemaActual)))
+                Tokens.append(Token("igual",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==40:
+                Tokens.append(Token("Reservada",LexemaActual,fila,columna-len(LexemaActual)))
+                Tokens.append(Token("parentesis_a",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            else:
+                if isEspacio(c):
+                    pass
+                
+        elif estado==2:
+            pass
+        elif estado==3:
+            pass
+        elif estado==4:
+            pass
+        elif estado==5:
+            pass
+               
+        elif estado==6 and not isEspacio(c):
+            pass
+
+        elif estado==7 and not isEspacio(c):
+            pass
+        elif estado==8:
+            pass
+        elif estado==9 and not isEspacio(c):
+            pass
+        elif estado==10:
+            pass
+        
+        
+
+
+
+
+        # controlador de filas y columnas
+        if ord(c) == 10:
+            columna=1
+            fila+=1
+            continue
+        elif(ord(c) == 9): #para tabulación
+            columna+=4
+            continue
+        elif(ord(c)==32):
+            columna+=1
+            continue
+        columna+=1
+    
+    for e in Errores:
+        print("fila:",e.fila,"columna",e.columna,"caracter:",e.caracter,e.observacion)
+
+    for t in Tokens:
+        print(t.token,t.lexema,t.fila,t.columna)
+    if error:
+        print("Si hubo error")
+        messagebox.showinfo(message="Se reportaron errores en el analisis por favor vea los reportes",title="Aviso")
+    else:
+        print("No hubo error")
+        messagebox.showinfo(message="Se realizo el analisis con exito y sin errores",title="Aviso")
 
 if __name__=='__main__':
     generarVentana()

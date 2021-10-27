@@ -110,6 +110,7 @@ def isEspacio(C):
     else:
         return False
 
+
 def analizar(txt):
     global Tokens,Errores
     Errores=[]
@@ -131,16 +132,36 @@ def analizar(txt):
                 Tokens.append(Token("igual",c,fila,columna))
                 LexemaActual=""
                 estado=0
-            elif ord(c)==40:
+            elif ord(c)==40: #parentecis abierto
                 Tokens.append(Token("parentesis_a",c,fila,columna))
                 LexemaActual=""
                 estado=0
-            elif ord(c)==91:
+            elif ord(c)==41: #parentecis cerrado
+                Tokens.append(Token("parentesis_c",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==91: #corchete abierto
                 Tokens.append(Token("Corchete_a",c,fila,columna))
                 LexemaActual=""
                 estado=0
-            elif ord(c)==44:
+            elif ord(c)==93: #corchete cerrado
+                Tokens.append(Token("Corchete_c",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==44:# coma
                 Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==59:# punto y coma
+                Tokens.append(Token("punto_coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==123:# llave abierta
+                Tokens.append(Token("llave_abierta",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==125:# llave cerrada
+                Tokens.append(Token("llave_cerrada",c,fila,columna))
                 LexemaActual=""
                 estado=0
             elif ord(c)==35:
@@ -166,6 +187,9 @@ def analizar(txt):
                 error=True
                 LexemaActual=""
                 estado=0
+        
+        
+        
         elif estado==1 and not isEspacio(c):
             if isLetra(c):
                 LexemaActual+=c
@@ -238,6 +262,10 @@ def analizar(txt):
                     LexemaActual=""
                     estado=0
                 
+        
+        
+        
+        
         elif estado==2:
             if ord(c)==34:
                 Tokens.append(Token("cadena",LexemaActual,fila,columna-len(LexemaActual)))
@@ -245,11 +273,17 @@ def analizar(txt):
                 LexemaActual=""
             else:
                 LexemaActual+=c
+        
+        
+        
         elif estado==5:
             if ord(c)==10:
                 estado=0
                 LexemaActual=""
                
+        
+        
+        
         elif estado==6:
             comilla=False
             if conteo==2 and ord(c)==39 and comilla:
@@ -265,6 +299,9 @@ def analizar(txt):
                 estado=0
 
 
+        
+        
+        
         elif estado==7 and not isEspacio(c):
             if isNumero(c):
                 LexemaActual+=c
@@ -274,6 +311,9 @@ def analizar(txt):
                 error=True
                 estado=0
                 LexemaActual=""
+        
+        
+        
         elif estado==8:
             if isNumero(c):
                 LexemaActual+=c
@@ -283,7 +323,18 @@ def analizar(txt):
                 estado=0
                 LexemaActual=""
             elif ord(c)==44:
+                Tokens.append(Token("num",LexemaActual,fila,columna-len(LexemaActual)))
                 Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==125:# llave cerrada
+                Tokens.append(Token("num",LexemaActual,fila,columna-len(LexemaActual)))
+                Tokens.append(Token("llave_cerrada",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==41: #parentecis cerrado
+                Tokens.append(Token("num",LexemaActual,fila,columna-len(LexemaActual)))
+                Tokens.append(Token("parentesis_c",c,fila,columna))
                 LexemaActual=""
                 estado=0
             elif ord(c)==46:
@@ -304,6 +355,9 @@ def analizar(txt):
                 error=True
                 estado=0
                 LexemaActual=""
+        
+        
+        
         elif estado==10:
             if isNumero(c):
                 LexemaActual+=c
@@ -314,6 +368,14 @@ def analizar(txt):
                 LexemaActual=""
             elif ord(c)==44:
                 Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==125:# llave cerrada
+                Tokens.append(Token("llave_cerrada",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==41: #parentecis cerrado
+                Tokens.append(Token("parentesis_a",c,fila,columna))
                 LexemaActual=""
                 estado=0
             else:

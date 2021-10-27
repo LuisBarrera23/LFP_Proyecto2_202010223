@@ -49,7 +49,7 @@ def generarVentana():
     #botones
     b1=Button(ventana,text="Cargar",command=cargarArchivo,font=("Verdana",10),borderwidth=3,background="beige").place(x=300,y=35,height=40,width=100)
     b2=Button(ventana,text="Analizar",command=Solicitaranalisis,font=("Verdana",10),borderwidth=3,background="beige").place(x=980,y=35,height=40,width=100)
-    b3=Button(ventana,text="Reporte de Errores",font=("Verdana",10),borderwidth=3,background="beige").place(x=20,y=300,height=40,width=150)
+    b3=Button(ventana,text="Reporte de Errores",command=ReporteHtmlErrores,font=("Verdana",10),borderwidth=3,background="beige").place(x=20,y=300,height=40,width=150)
     b4=Button(ventana,text="Reporte de Tokens",command=ReporteHtmlTokens,font=("Verdana",10),borderwidth=3,background="beige").place(x=20,y=360,height=40,width=150)
     
     
@@ -503,7 +503,90 @@ def ReporteHtmlTokens():
     else:
         messagebox.showerror(message="No se ha analizado ningun archivo",title="Error")
 
+def ReporteHtmlErrores():
+    global Tokens,Errores,analizado
+    if analizado:
+        f=open("Reporte.html","w",encoding='UTF-8')
+        inicio="""
+        <!doctype html>
+        <html lang="en">
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+        <title>Reporte Proyecto 1</title>
+        </head>
+        <style>
+        .titulo{
+            text-align: center;
+            background-color: aqua;
+            padding: 8px;
+        }
+        .cuerpo{
+            background-color: white;
+        }
+        .contenido{
+            color: white;
+        }
+        .inscritos{
+            color:white;
+            background-color: teal;
+            padding: 8px;
+        }
+        .tabla{
+            width:80%; 
+            text-align: center; 
+            margin-right: auto; 
+            margin-left: auto;
+            padding: 15px;
+        }
+        h1,h2{
+            text-align:center;
+            padding:8px;
+        }
+        </style>
+        <body class="cuerpo">
+        <div class="titulo">
+        <h1>Reportes</h1></div>"""
+
+        inicio+="<div><h2>Tabla de Errores</h2>"
+
+        inicio+="<div class=\"tabla\"><table class=\"table table-dark table-hover\">"
+        inicio+="""<thead><tr>
+        <th scope="col">No.</th>
+        <th scope="col">FILA</th>
+        <th scope="col">COLUMNA</th>
+        <th scope="col">CARACTER</th>
+        <th scope="col">OBSERVACION</th>
+        </tr></thead><tbody>"""
+                
+        for i in range(len(Errores)):
+            inicio+="<tr>"
+            inicio+="<th scope=\"row\">"+str(i+1)+"</th>"
+            inicio+="<td>"+str(Errores[i].fila)+"</td>"
+            inicio+="<td>"+str(Errores[i].columna)+"</td>"
+            inicio+="<td>"+Errores[i].caracter+"</td>"
+            inicio+="<td>"+Errores[i].observacion+"</td>"
+            inicio+="</tr>"
+                
+        inicio+="</tbody></table></div></div>"
+        
+
+
+
+
+        fin="""
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+        </body>
+        </html>"""
+        f.write(inicio+fin)
+        f.close()
+        startfile("Reporte.html")
+    else:
+        messagebox.showerror(message="No se ha analizado ningun archivo",title="Error")
 
 if __name__=='__main__':
     generarVentana()

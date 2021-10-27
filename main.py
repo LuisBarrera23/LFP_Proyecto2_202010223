@@ -135,9 +135,18 @@ def analizar(txt):
                 Tokens.append(Token("parentesis_a",c,fila,columna))
                 LexemaActual=""
                 estado=0
+            elif ord(c)==91:
+                Tokens.append(Token("Corchete_a",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==44:
+                Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
             elif ord(c)==35:
                 estado=5
             elif isNumero(c):
+                LexemaActual+=c
                 estado=8
             elif ord(c)==39:#3 comillas simples
                 if conteo==2:
@@ -146,7 +155,7 @@ def analizar(txt):
                 else:
                     conteo+=1
             elif ord(c)==43 or ord(c)==45:#signo mas e igual
-                Tokens.append(Token("signo",c,fila,columna))
+                LexemaActual+=c
                 estado=7
             #-------------------------------------------------------
             elif ord(c)==34:#comillas
@@ -157,44 +166,162 @@ def analizar(txt):
                 error=True
                 LexemaActual=""
                 estado=0
-        elif estado==1:
+        elif estado==1 and not isEspacio(c):
             if isLetra(c):
                 LexemaActual+=c
                 estado=1
             elif ord(c)==61:#signo =
-                Tokens.append(Token("Reservada",LexemaActual,fila,columna-len(LexemaActual)))
-                Tokens.append(Token("igual",c,fila,columna))
+                if LexemaActual=="Claves":
+                    Tokens.append(Token("claves",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("igual",c,fila,columna))
+                elif LexemaActual=="Registros":
+                    Tokens.append(Token("registros",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("igual",c,fila,columna))
+                else:
+                    Errores.append(Error(fila,columna,LexemaActual,"Palabra reservada mal escrita"))
+                    error=True
+                    LexemaActual=""
+                    estado=0
+                
                 LexemaActual=""
                 estado=0
-            elif ord(c)==40:
-                Tokens.append(Token("Reservada",LexemaActual,fila,columna-len(LexemaActual)))
+            elif ord(c)==40:#parentesis
                 Tokens.append(Token("parentesis_a",c,fila,columna))
+                if LexemaActual=="imprimir":
+                    Tokens.append(Token("imprimir",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="imprimirln":
+                    Tokens.append(Token("imprimirln",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="conteo":
+                    Tokens.append(Token("conteo",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="promedio":
+                    Tokens.append(Token("promedio",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="contarsi":
+                    Tokens.append(Token("contarsi",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="datos":
+                    Tokens.append(Token("datos",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="leidos.sumar" or LexemaActual=="leídos.sumar":
+                    Tokens.append(Token("leidossumar",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="max":
+                    Tokens.append(Token("max",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="min":
+                    Tokens.append(Token("min",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
+                elif LexemaActual=="exportarReporte":
+                    Tokens.append(Token("min",LexemaActual,fila,columna-len(LexemaActual)))
+                    LexemaActual=""
+                    estado=0
                 LexemaActual=""
                 estado=0
             else:
                 if isEspacio(c):
                     pass
+                else:
+                    Errores.append(Error(fila,columna,c,"Caracter no valido")) 
+                    error=True
+                    LexemaActual=""
+                    estado=0
                 
         elif estado==2:
-            pass
-        elif estado==3:
-            pass
-        elif estado==4:
-            pass
+            if ord(c)==34:
+                Tokens.append(Token("cadena",LexemaActual,fila,columna-len(LexemaActual)))
+                estado=0
+                LexemaActual=""
+            else:
+                LexemaActual+=c
         elif estado==5:
-            pass
+            if ord(c)==10:
+                estado=0
+                LexemaActual=""
                
-        elif estado==6 and not isEspacio(c):
-            pass
+        elif estado==6:
+            comilla=False
+            if conteo==2 and ord(c)==39 and comilla:
+                conteo=0
+                estado=0
+            elif ord(c)==39:
+                conteo+=1
+                comilla=True
+            else:
+                Errores.append(Error(fila,columna,c,"Se esperaba comilla")) 
+                error=True
+                LexemaActual=""
+                estado=0
+
 
         elif estado==7 and not isEspacio(c):
-            pass
+            if isNumero(c):
+                LexemaActual+=c
+                estado=8
+            else:
+                Errores.append(Error(fila,columna,c,"Caracter no valido"))
+                error=True
+                estado=0
+                LexemaActual=""
         elif estado==8:
-            pass
+            if isNumero(c):
+                LexemaActual+=c
+                estado=8
+            elif isEspacio(c):
+                Tokens.append(Token("num",LexemaActual,fila,columna-len(LexemaActual)))
+                estado=0
+                LexemaActual=""
+            elif ord(c)==44:
+                Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            elif ord(c)==46:
+                LexemaActual+=c
+                estado=9
+            else:
+                Errores.append(Error(fila,columna,c,"Caracter no valido"))
+                error=True
+                estado=0
+                LexemaActual=""
+                
         elif estado==9 and not isEspacio(c):
-            pass
+            if isNumero(c):
+                LexemaActual+=c
+                estado=10
+            else:
+                Errores.append(Error(fila,columna,c,"se esperaba numero"))
+                error=True
+                estado=0
+                LexemaActual=""
         elif estado==10:
-            pass
+            if isNumero(c):
+                LexemaActual+=c
+                estado=8
+            elif isEspacio(c):
+                Tokens.append(Token("num",LexemaActual,fila,columna-len(LexemaActual)))
+                estado=0
+                LexemaActual=""
+            elif ord(c)==44:
+                Tokens.append(Token("coma",c,fila,columna))
+                LexemaActual=""
+                estado=0
+            else:
+                Errores.append(Error(fila,columna,c,"Caracter no valido"))
+                error=True
+                estado=0
+                LexemaActual=""
+
         
         
 

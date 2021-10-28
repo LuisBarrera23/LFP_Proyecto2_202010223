@@ -420,7 +420,7 @@ def analizar(txt):
 def ReporteHtmlTokens():
     global Tokens,Errores,analizado
     if analizado:
-        f=open("Reporte.html","w",encoding='UTF-8')
+        f=open("ReporteTokens.html","w",encoding='UTF-8')
         inicio="""
         <!doctype html>
         <html lang="en">
@@ -506,7 +506,7 @@ def ReporteHtmlTokens():
 def ReporteHtmlErrores():
     global Tokens,Errores,analizado
     if analizado:
-        f=open("Reporte.html","w",encoding='UTF-8')
+        f=open("ReporteErrores.html","w",encoding='UTF-8')
         inicio="""
         <!doctype html>
         <html lang="en">

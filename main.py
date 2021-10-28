@@ -3,11 +3,13 @@ from tkinter import *
 from os import startfile
 from Token import Token
 from Error import Error
+from Clave import clave
 
 
 #variables globales
 Errores=[]
 Tokens=[]
+Claves=[]
 ventana=Tk()
 textE=Text()
 textS=Text()
@@ -62,23 +64,24 @@ def generarVentana():
 
 def cargarArchivo():
     global texto,textE
-    archivo=filedialog.askopenfile(
+    archivo=filedialog.askopenfilename(
         title="Por favor seleccine un archivo",
         initialdir="./",
         filetypes=(
             ("Archivo LFP","*.lfp"),("Todos los archivos","*.*")
         )
     )
-
-    if archivo is None:
+    print(archivo)
+    if archivo=="":
         messagebox.showerror(message="No selecciono ningun archivo, por favor vuelva a intentarlo",title="Error")
         texto=""
         print("No selecciono ningun archivo, por favor vuelva a intentarlo")
     else:
-        temp=archivo.read()
+        contenido=open(archivo,"r",encoding='UTF-8')
+        temp=contenido.read()
         textE.delete('1.0', END)
         textE.insert(END,temp)
-        archivo.close()
+        contenido.close()
 
 def Solicitaranalisis():
     global texto,analizado,textE
@@ -212,47 +215,62 @@ def analizar(txt):
                 LexemaActual=""
                 estado=0
             elif ord(c)==40:#parentesis
-                Tokens.append(Token("parentesis_a",c,fila,columna))
                 if LexemaActual=="imprimir":
                     Tokens.append(Token("imprimir",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="imprimirln":
                     Tokens.append(Token("imprimirln",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="conteo":
                     Tokens.append(Token("conteo",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="promedio":
                     Tokens.append(Token("promedio",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="contarsi":
                     Tokens.append(Token("contarsi",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="datos":
                     Tokens.append(Token("datos",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
-                elif LexemaActual=="leidos.sumar" or LexemaActual=="leídos.sumar":
+                elif LexemaActual=="sumar":
                     Tokens.append(Token("leidossumar",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="max":
                     Tokens.append(Token("max",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="min":
                     Tokens.append(Token("min",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="exportarReporte":
                     Tokens.append(Token("min",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
+                else:
+                    Errores.append(Error(fila,columna,LexemaActual,"Palabra reservada mal escrita"))
+                    error=True
+                    LexemaActual=""
+                    estado=0
+
                 LexemaActual=""
                 estado=0
             else:
@@ -287,18 +305,12 @@ def analizar(txt):
         
         
         elif estado==6:
-            comilla=False
-            if conteo==2 and ord(c)==39 and comilla:
+            if conteo==2 and ord(c)==39:
                 conteo=0
                 estado=0
             elif ord(c)==39:
                 conteo+=1
-                comilla=True
-            else:
-                Errores.append(Error(fila,columna,c,"Se esperaba comilla")) 
-                error=True
-                LexemaActual=""
-                estado=0
+            
 
 
         
@@ -415,7 +427,84 @@ def analizar(txt):
         messagebox.showinfo(message="Se reportaron errores en el analisis por favor vea los reportes",title="Aviso")
     else:
         print("No hubo error")
-        messagebox.showinfo(message="Se realizo el analisis con exito y sin errores",title="Aviso")
+        analisisSintactico()
+
+
+def analisisSintactico():
+    global Tokens,Errores,Claves
+    Claves=[]
+    errorS=False
+    for c,token in enumerate(Tokens):
+        if Tokens[c].token=="claves":
+            if Tokens[c+1].token=="igual":
+                if Tokens[c+2].token=="Corchete_a":
+                    iterador=c+3
+                    nocla=0
+                    while Tokens[iterador].token!="Corchete_c":
+                        if Tokens[iterador].token=="cadena":
+                            if Tokens[iterador+1].token=="coma":
+                                Claves.append(clave(Tokens[iterador].lexema,nocla))
+                            elif Tokens[iterador+1].token=="Corchete_c":
+                                Claves.append(clave(Tokens[iterador].lexema,nocla))
+                            else:
+                                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token coma o corchete_c"))
+                                errorS=True
+                        elif Tokens[iterador].token=="coma":
+                            pass
+
+                        iterador+=1
+                        nocla+=1
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token Corchete_a"))
+                    errorS=True
+            else:
+                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token igual"))
+                errorS=True
+        
+        
+        
+        elif Tokens[c].token=="registros":
+            if Tokens[c+1].token=="igual":
+                if Tokens[c+2].token=="Corchete_a":
+                    iterador=c+3
+                    llave=False
+                    noreg=0
+                    while Tokens[iterador+1].token!="Corchete_c":
+                        if Tokens[iterador].token=="llave_abierta":
+                            llave=True
+                        elif Tokens[iterador].token=="num" and llave:
+                            if Tokens[iterador+1].token=="coma" or Tokens[iterador+1].token=="llave_cerrada":
+                                if noreg<len(Claves):
+                                    Claves[noreg].insertar(Tokens[iterador].lexema)
+                                    noreg+=1
+                        elif Tokens[iterador].token=="cadena" and llave:
+                            if Tokens[iterador+1].token=="coma" or Tokens[iterador+1].token=="llave_cerrada":
+                                if noreg<len(Claves):
+                                    Claves[noreg].insertar(Tokens[iterador].lexema)
+                                    noreg+=1
+                                else:
+                                    print("registro de mas")
+                        elif Tokens[iterador].token=="llave_cerrada" and llave:
+                            noreg=0
+                            llave=False
+
+                        iterador+=1
+                
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token Corchete_a"))
+                    errorS=True
+            else:
+                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token igual"))
+                errorS=True
+            
+            
+            
+            # for cla in Claves:
+            #     for g in cla.registros:
+            #         print(g)
+            #     print("otra columna")
+                
+                
 
 def ReporteHtmlTokens():
     global Tokens,Errores,analizado
@@ -499,7 +588,7 @@ def ReporteHtmlTokens():
         </html>"""
         f.write(inicio+fin)
         f.close()
-        startfile("Reporte.html")
+        startfile("ReporteTokens.html")
     else:
         messagebox.showerror(message="No se ha analizado ningun archivo",title="Error")
 
@@ -584,7 +673,7 @@ def ReporteHtmlErrores():
         </html>"""
         f.write(inicio+fin)
         f.close()
-        startfile("Reporte.html")
+        startfile("ReporteErrores.html")
     else:
         messagebox.showerror(message="No se ha analizado ningun archivo",title="Error")
 

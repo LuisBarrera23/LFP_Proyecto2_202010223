@@ -431,9 +431,15 @@ def analizar(txt):
 
 
 def analisisSintactico():
-    global Tokens,Errores,Claves
+    global Tokens,Errores,Claves,textS
     Claves=[]
     errorS=False
+    reg=False
+    cla=False
+    textS.config(state=NORMAL)
+    textS.delete('1.0', END)
+    textS.config(state=DISABLED)
+    
     for c,token in enumerate(Tokens):
         if Tokens[c].token=="claves":
             if Tokens[c+1].token=="igual":
@@ -447,15 +453,16 @@ def analisisSintactico():
                             elif Tokens[iterador+1].token=="Corchete_c":
                                 Claves.append(clave(Tokens[iterador].lexema,nocla))
                             else:
-                                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token coma o corchete_c"))
+                                Errores.append(Error(Tokens[iterador+1].fila,Tokens[c+1].columna,Tokens[iterador+1].token,"se esperaba token coma o corchete_c"))
                                 errorS=True
                         elif Tokens[iterador].token=="coma":
                             pass
 
                         iterador+=1
                         nocla+=1
+                    cla=True
                 else:
-                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token Corchete_a"))
+                    Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token Corchete_a"))
                     errorS=True
             else:
                 Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token igual"))
@@ -464,6 +471,7 @@ def analisisSintactico():
         
         
         elif Tokens[c].token=="registros":
+            comp=False
             if Tokens[c+1].token=="igual":
                 if Tokens[c+2].token=="Corchete_a":
                     iterador=c+3
@@ -477,25 +485,187 @@ def analisisSintactico():
                                 if noreg<len(Claves):
                                     Claves[noreg].insertar(Tokens[iterador].lexema)
                                     noreg+=1
+                                else:
+                                    comp=True
                         elif Tokens[iterador].token=="cadena" and llave:
                             if Tokens[iterador+1].token=="coma" or Tokens[iterador+1].token=="llave_cerrada":
                                 if noreg<len(Claves):
                                     Claves[noreg].insertar(Tokens[iterador].lexema)
                                     noreg+=1
                                 else:
-                                    print("registro de mas")
+                                    comp=True
                         elif Tokens[iterador].token=="llave_cerrada" and llave:
                             noreg=0
                             llave=False
 
                         iterador+=1
+                    reg=True
                 
                 else:
-                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token Corchete_a"))
+                    Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token Corchete_a"))
                     errorS=True
             else:
                 Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token igual"))
                 errorS=True
+            if comp:
+                reg=False
+                textS.config(state=NORMAL)
+                textS.insert(END,"Vinieron mas registros que claves en alguna fila\n")
+                textS.config(state=DISABLED)
+        
+
+        elif Tokens[c].token=="imprimir":
+            if Tokens[c+1].token=="parentesis_a":
+                if Tokens[c+2].token=="cadena":
+                    if Tokens[c+3].token=="parentesis_c":
+                        if Tokens[c+4].token=="punto_coma":
+                            textS.config(state=NORMAL)
+                            textS.insert(END,Tokens[c+2].lexema)
+                            textS.config(state=DISABLED)
+                        else:
+                            Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                    errorS=True
+            else:
+                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                errorS=True
+
+        elif Tokens[c].token=="imprimirln":
+            if Tokens[c+1].token=="parentesis_a":
+                if Tokens[c+2].token=="cadena":
+                    if Tokens[c+3].token=="parentesis_c":
+                        if Tokens[c+4].token=="punto_coma":
+                            textS.config(state=NORMAL)
+                            textS.insert(END,Tokens[c+2].lexema+"\n")
+                            textS.config(state=DISABLED)
+                        else:
+                            Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                    errorS=True
+            else:
+                Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                errorS=True
+
+        elif Tokens[c].token=="conteo":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="parentesis_c":
+                        if Tokens[c+3].token=="punto_coma":
+                            largo=len(Claves[0].registros)
+                            textS.config(state=NORMAL)
+                            textS.insert(END,str(largo)+"\n")
+                            textS.config(state=DISABLED)
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token punto_coma"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token parentesis_c"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar conteo, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="promedio":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="parentesis_c":
+                            if Tokens[c+4].token=="punto_coma":
+                                for cla in Claves:
+                                    if cla.clave==Tokens[c+2].lexema:
+                                        try:
+                                            columna=cla.registros
+                                            recuento=len(columna)
+                                            promedio=0
+                                            for valor in columna:
+                                                promedio+=float(valor)
+                                            textS.config(state=NORMAL)
+                                            textS.insert(END,str(promedio/recuento))
+                                            textS.config(state=DISABLED)
+                                        except:
+                                            textS.config(state=NORMAL)
+                                            textS.insert(END,"comando promedio, encontro una cadena")
+                                            textS.config(state=DISABLED)
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar conteo, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="contarsi":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="coma":
+                            if Tokens[c+4].token=="cadena" or Tokens[c+2].token=="num":
+                                if Tokens[c+5].token=="parentesis_c":
+                                    if Tokens[c+6].token=="punto_coma":
+                                        for cla in Claves:
+                                            if cla.clave==Tokens[c+2].lexema:
+                                                try:
+                                                    columna=cla.registros
+                                                    recuento=len(columna)
+                                                    conteo=0
+                                                    for valor in columna:
+                                                        if valor==Tokens[c+4].lexema:
+                                                            conteo+=1
+                                                    textS.config(state=NORMAL)
+                                                    textS.insert(END,str(conteo))
+                                                    textS.config(state=DISABLED)
+                                                except:
+                                                    textS.config(state=NORMAL)
+                                                    textS.insert(END,"comando promedio, encontro una cadena")
+                                                    textS.config(state=DISABLED)
+                                    else:
+                                        Errores.append(Error(Tokens[c+6].fila,Tokens[c+6].columna,Tokens[c+6].token,"se esperaba token punto_coma"))
+                                        errorS=True
+                                else:
+                                    Errores.append(Error(Tokens[c+5].fila,Tokens[c+5].columna,Tokens[c+5].token,"se esperaba token parentesis_c"))
+                                    errorS=True
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token cadena o num"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token coma"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar conteo, los datos son incorrectos")
+                textS.config(state=DISABLED)
             
             
             

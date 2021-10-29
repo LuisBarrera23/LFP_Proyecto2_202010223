@@ -246,7 +246,7 @@ def analizar(txt):
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="sumar":
-                    Tokens.append(Token("leidossumar",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("sumar",LexemaActual,fila,columna-len(LexemaActual)))
                     Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
@@ -261,7 +261,7 @@ def analizar(txt):
                     LexemaActual=""
                     estado=0
                 elif LexemaActual=="exportarReporte":
-                    Tokens.append(Token("min",LexemaActual,fila,columna-len(LexemaActual)))
+                    Tokens.append(Token("exportarReporte",LexemaActual,fila,columna-len(LexemaActual)))
                     Tokens.append(Token("parentesis_a",c,fila,columna))
                     LexemaActual=""
                     estado=0
@@ -616,7 +616,7 @@ def analisisSintactico():
             
             else:
                 textS.config(state=NORMAL)
-                textS.insert(END,"no se puede ejecutar conteo, los datos son incorrectos")
+                textS.insert(END,"no se puede ejecutar promedio, los datos son incorrectos")
                 textS.config(state=DISABLED)
 
         elif Tokens[c].token=="contarsi":
@@ -641,7 +641,7 @@ def analisisSintactico():
                                                     textS.config(state=DISABLED)
                                                 except:
                                                     textS.config(state=NORMAL)
-                                                    textS.insert(END,"comando promedio, encontro una cadena")
+                                                    textS.insert(END,"comando contarsi, encontro una cadena")
                                                     textS.config(state=DISABLED)
                                     else:
                                         Errores.append(Error(Tokens[c+6].fila,Tokens[c+6].columna,Tokens[c+6].token,"se esperaba token punto_coma"))
@@ -664,7 +664,83 @@ def analisisSintactico():
             
             else:
                 textS.config(state=NORMAL)
-                textS.insert(END,"no se puede ejecutar conteo, los datos son incorrectos")
+                textS.insert(END,"no se puede ejecutar contarsi, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="sumar":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="parentesis_c":
+                            if Tokens[c+4].token=="punto_coma":
+                                for cla in Claves:
+                                    if cla.clave==Tokens[c+2].lexema:
+                                        try:
+                                            columna=cla.registros
+                                            recuento=len(columna)
+                                            promedio=0
+                                            for valor in columna:
+                                                promedio+=float(valor)
+                                            textS.config(state=NORMAL)
+                                            print(promedio)
+                                            textS.insert(END,str(promedio))
+                                            textS.config(state=DISABLED)
+                                        except:
+                                            textS.config(state=NORMAL)
+                                            textS.insert(END,"comando sumar, encontro una cadena")
+                                            textS.config(state=DISABLED)
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar sumar, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="datos":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="parentesis_c":
+                        if Tokens[c+3].token=="punto_coma":
+                            for cla in Claves:
+                                textS.config(state=NORMAL)
+                                textS.insert(END,cla.clave+"\t\t")
+                                textS.config(state=DISABLED)
+                            textS.config(state=NORMAL)
+                            textS.insert(END,"\n")
+                            textS.config(state=DISABLED)
+                            cant=len(Claves[0].registros)
+                            for i in range(cant):
+                                for c in Claves:
+                                    textS.config(state=NORMAL)
+                                    textS.insert(END,c.registros[i]+"\t\t")
+                                    textS.config(state=DISABLED)
+                                textS.config(state=NORMAL)
+                                textS.insert(END,"\n")
+                                textS.config(state=DISABLED)
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token punto_coma"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token parentesis_c"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar datos, los datos son incorrectos")
                 textS.config(state=DISABLED)
             
             
@@ -673,7 +749,120 @@ def analisisSintactico():
             #     for g in cla.registros:
             #         print(g)
             #     print("otra columna")
-                
+
+        elif Tokens[c].token=="max":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="parentesis_c":
+                            if Tokens[c+4].token=="punto_coma":
+                                for cla in Claves:
+                                    if cla.clave==Tokens[c+2].lexema:
+                                        try:
+                                            columna=cla.registros
+                                            for i in range(1,len(columna)):
+                                                for j in range(0,len(columna)-i):
+                                                    if(float(columna[j+1])>float(columna[j])):
+                                                        aux1=columna[j]
+                                                        columna[j]=columna[j+1]
+                                                        columna[j+1]=aux1
+                                            textS.config(state=NORMAL)
+                                            #print(columna)
+                                            textS.insert(END,str(columna[0]))
+                                            textS.config(state=DISABLED)
+                                        except:
+                                            textS.config(state=NORMAL)
+                                            textS.insert(END,"comando max, encontro una cadena")
+                                            textS.config(state=DISABLED)
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar max, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="min":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="parentesis_c":
+                            if Tokens[c+4].token=="punto_coma":
+                                for cla in Claves:
+                                    if cla.clave==Tokens[c+2].lexema:
+                                        try:
+                                            columna=cla.registros
+                                            for i in range(1,len(columna)):
+                                                for j in range(0,len(columna)-i):
+                                                    if(float(columna[j+1])<float(columna[j])):
+                                                        aux1=columna[j]
+                                                        columna[j]=columna[j+1]
+                                                        columna[j+1]=aux1
+                                            textS.config(state=NORMAL)
+                                            #print(columna)
+                                            textS.insert(END,str(columna[0]))
+                                            textS.config(state=DISABLED)
+                                        except:
+                                            textS.config(state=NORMAL)
+                                            textS.insert(END,"comando min, encontro una cadena")
+                                            textS.config(state=DISABLED)
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar min, los datos son incorrectos")
+                textS.config(state=DISABLED)
+
+        elif Tokens[c].token=="exportarReporte":
+            if reg and cla:
+                if Tokens[c+1].token=="parentesis_a":
+                    if Tokens[c+2].token=="cadena":
+                        if Tokens[c+3].token=="parentesis_c":
+                            if Tokens[c+4].token=="punto_coma":
+                                try:
+                                    tablaHTML(Tokens[c+2].lexema)
+                                except:
+                                    textS.config(state=NORMAL)
+                                    textS.insert(END,"Ocurrio un error al ejecutar exportarReporte")
+                                    textS.config(state=DISABLED)
+                            else:
+                                Errores.append(Error(Tokens[c+4].fila,Tokens[c+4].columna,Tokens[c+4].token,"se esperaba token punto_coma"))
+                                errorS=True
+                        else:
+                            Errores.append(Error(Tokens[c+3].fila,Tokens[c+3].columna,Tokens[c+3].token,"se esperaba token parentesis_c"))
+                            errorS=True
+                    else:
+                        Errores.append(Error(Tokens[c+2].fila,Tokens[c+2].columna,Tokens[c+2].token,"se esperaba token cadena"))
+                        errorS=True
+                else:
+                    Errores.append(Error(Tokens[c+1].fila,Tokens[c+1].columna,Tokens[c+1].token,"se esperaba token parentesis_a"))
+                    errorS=True
+            
+            else:
+                textS.config(state=NORMAL)
+                textS.insert(END,"no se puede ejecutar exportarReporte, los datos son incorrectos")
+                textS.config(state=DISABLED)
                 
 
 def ReporteHtmlTokens():
@@ -846,6 +1035,100 @@ def ReporteHtmlErrores():
         startfile("ReporteErrores.html")
     else:
         messagebox.showerror(message="No se ha analizado ningun archivo",title="Error")
+
+def tablaHTML(titulo):
+    global Claves
+    f=open("ReporteTabla.html","w",encoding='UTF-8')
+    inicio="""
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+    <title>Tabla de registros</title>
+    </head>
+    <style>
+    .titulo{
+        text-align: center;
+        background-color: aqua;
+        padding: 8px;
+    }
+    .cuerpo{
+        background-color: white;
+    }
+    .contenido{
+        color: white;
+    }
+    .inscritos{
+        color:white;
+        background-color: teal;
+        padding: 8px;
+    }
+    .tabla{
+        width:80%; 
+        text-align: center; 
+        margin-right: auto; 
+        margin-left: auto;
+        padding: 15px;
+    }
+    h1,h2{
+        text-align:center;
+        padding:8px;
+    }
+    </style>
+    <body class="cuerpo">
+    <div class="titulo">
+    <h1>Reporte Registro</h1></div>"""
+
+    inicio+=f"<div><h2>{titulo}</h2>"
+
+    inicio+="<div class=\"tabla\"><table class=\"table table-dark table-hover\">"
+    inicio+="""<thead><tr>
+    <th scope="col">No.</th>
+    <th scope="col">FILA</th>
+    <th scope="col">COLUMNA</th>
+    <th scope="col">CARACTER</th>
+    <th scope="col">OBSERVACION</th>
+    </tr></thead><tbody>"""
+            
+    for i in range(len(Errores)):
+        inicio+="<tr>"
+        inicio+="<th scope=\"row\">"+str(i+1)+"</th>"
+        inicio+="<td>"+str(Errores[i].fila)+"</td>"
+        inicio+="<td>"+str(Errores[i].columna)+"</td>"
+        inicio+="<td>"+Errores[i].caracter+"</td>"
+        inicio+="<td>"+Errores[i].observacion+"</td>"
+        inicio+="</tr>"
+
+    inicio+="<thead><tr>"
+    for cla in Claves:
+        inicio+=f"<th scope=\"col\">{cla.clave}</th>"
+    inicio+="</tr></thead><tbody>"
+    cant=len(Claves[0].registros)
+    for i in range(cant):
+        inicio+="<tr>"
+        for c in Claves:
+            inicio+="<td>"+str(c.registros[i])+"</td>"
+        inicio+="</tr>"
+    
+            
+    inicio+="</tbody></table></div></div>"
+    
+
+
+
+
+    fin="""
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+    </body>
+    </html>"""
+    f.write(inicio+fin)
+    f.close()
+    startfile("ReporteTabla.html")
 
 if __name__=='__main__':
     generarVentana()

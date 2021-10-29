@@ -624,7 +624,7 @@ def analisisSintactico():
                 if Tokens[c+1].token=="parentesis_a":
                     if Tokens[c+2].token=="cadena":
                         if Tokens[c+3].token=="coma":
-                            if Tokens[c+4].token=="cadena" or Tokens[c+2].token=="num":
+                            if Tokens[c+4].token=="cadena" or Tokens[c+4].token=="num":
                                 if Tokens[c+5].token=="parentesis_c":
                                     if Tokens[c+6].token=="punto_coma":
                                         for cla in Claves:
@@ -1087,23 +1087,7 @@ def tablaHTML(titulo):
     inicio+=f"<div><h2>{titulo}</h2>"
 
     inicio+="<div class=\"tabla\"><table class=\"table table-dark table-hover\">"
-    inicio+="""<thead><tr>
-    <th scope="col">No.</th>
-    <th scope="col">FILA</th>
-    <th scope="col">COLUMNA</th>
-    <th scope="col">CARACTER</th>
-    <th scope="col">OBSERVACION</th>
-    </tr></thead><tbody>"""
-            
-    for i in range(len(Errores)):
-        inicio+="<tr>"
-        inicio+="<th scope=\"row\">"+str(i+1)+"</th>"
-        inicio+="<td>"+str(Errores[i].fila)+"</td>"
-        inicio+="<td>"+str(Errores[i].columna)+"</td>"
-        inicio+="<td>"+Errores[i].caracter+"</td>"
-        inicio+="<td>"+Errores[i].observacion+"</td>"
-        inicio+="</tr>"
-
+    
     inicio+="<thead><tr>"
     for cla in Claves:
         inicio+=f"<th scope=\"col\">{cla.clave}</th>"

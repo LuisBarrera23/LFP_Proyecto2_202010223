@@ -863,7 +863,16 @@ def analisisSintactico():
                 textS.config(state=NORMAL)
                 textS.insert(END,"no se puede ejecutar exportarReporte, los datos son incorrectos")
                 textS.config(state=DISABLED)
-                
+
+    if errorS:
+        print("Si hubo error")
+        messagebox.showinfo(message="Se reportaron errores en el analisis Sintactico por favor vea el reporte de errores",title="Aviso")
+    else:
+        print("No hubo error")
+        messagebox.showinfo(message="Analisis realizado con exito y sin errores",title="Aviso")
+
+
+
 
 def ReporteHtmlTokens():
     global Tokens,Errores,analizado
